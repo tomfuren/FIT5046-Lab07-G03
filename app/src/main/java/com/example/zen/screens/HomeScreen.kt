@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -27,6 +29,15 @@ import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 
 @Composable
+/**
+ * Home / Dashboard screen (Assessment 2 prototype).
+ *
+ * Demonstrates:
+ * - "Tip for you" card (context-aware in Assessment 4; placeholder in prototype)
+ * - Habit checklist (Checkbox)
+ * - Habit progress (LinearProgressIndicator)
+ * - Entry point buttons to Mood Log and Tips Library
+ */
 fun HomeScreen(onBrowseTips: () -> Unit = {}, onLogMood: () -> Unit = {}) {
     var drinkWater by remember { mutableStateOf(false) }
     var walk by remember { mutableStateOf(false) }
@@ -52,14 +63,15 @@ fun HomeScreen(onBrowseTips: () -> Unit = {}, onLogMood: () -> Unit = {}) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.primaryContainer
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     // TODO: Assessment 4
                     text = "It's evening, take 3 deep breaths",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -82,6 +94,21 @@ fun HomeScreen(onBrowseTips: () -> Unit = {}, onLogMood: () -> Unit = {}) {
             Checkbox(checked = sleep, onCheckedChange = { sleep = it })
             Text("Sleep by 11pm", style = MaterialTheme.typography.bodyMedium)
         }
+        Spacer(Modifier.height(8.dp))
+        val completedCount = listOf(drinkWater, walk, sleep).count { it }
+        val progress = completedCount / 3f
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "$completedCount/3 habits completed",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Spacer(Modifier.height(16.dp))
 
         Text(

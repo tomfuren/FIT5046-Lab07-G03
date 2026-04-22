@@ -45,14 +45,26 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Mood Log form screen (Assessment 2 prototype).
+ *
+ * This screen demonstrates required UI components:
+ * - Expanded dropdown (emotion)
+ * - Radio buttons (stress level)
+ * - DatePicker (entry date)
+ *
+ * Data persistence (Room/Firebase) will be implemented in Assessment 4.
+ */
 fun LogScreen() {
     val emotions = listOf("Happy", "Calm", "Anxious", "Stressed", "Sad", "Angry")
-    val stressLevels = listOf("Low", "Mild", "Moderate", "High", "Severe")
+    val stressLevels = listOf("Very Low", "Low", "Moderate", "High", "Very High")
 
     var isEmotionExpanded by remember { mutableStateOf(false) }
     var selectedEmotion by remember { mutableStateOf("") }
+    // UI validation: we only show an error message after the user taps Save.
     var emotionError by remember { mutableStateOf(false) }
 
+    // Default is "Moderate" to reduce cognitive load (report FG3).
     var selectedStress by remember { mutableStateOf("Moderate") }
 
     var journal by remember { mutableStateOf("") }

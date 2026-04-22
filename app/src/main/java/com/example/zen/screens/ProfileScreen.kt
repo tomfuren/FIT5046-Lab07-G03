@@ -1,5 +1,7 @@
 package com.example.zen.screens
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +13,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +24,9 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,14 +38,35 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit = {}) {
+/**
+ * Profile / Settings screen (Assessment 2 prototype).
+ *
+ * Demonstrates:
+ * - Preference selection (RadioButton)
+ * - Reminder switch + TimePicker UI
+ * - Dark mode switch wired to the actual app theme (so it is visible in screenshots)
+ *
+ * In Assessment 4, these settings will be persisted (Room/Firebase) and used for notifications.
+ */
+fun ProfileScreen(
+    onLogout: () -> Unit = {},
+    darkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit
+) {
     val tipCategories = listOf("Breathing", "Movement", "Journaling", "Mixed")
 
     var selectedCategory by remember { mutableStateOf("Mixed") }
     var reminderEnabled by remember { mutableStateOf(true) }
-    val reminderTime = "08:00"
-    var darkMode by remember { mutableStateOf(false) }
+    // Prototype default reminder time.
+    var reminderTime by remember { mutableStateOf("08:00") }
+    var showTimePicker by remember { mutableStateOf(false) }
+    val timePickerState = rememberTimePickerState(
+        initialHour = reminderTime.substringBefore(":").toIntOrNull() ?: 8,
+        initialMinute = reminderTime.substringAfter(":").toIntOrNull() ?: 0,
+        is24Hour = true
+    )
 
     Column(
         modifier = Modifier
@@ -117,21 +145,46 @@ fun ProfileScreen(onLogout: () -> Unit = {}) {
         }
         Spacer(Modifier.height(8.dp))
 
-        TextField(
-            // TODO: Assessment 4
-            value = reminderTime,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Reminder time") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = reminderEnabled,
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Schedule,
-                    contentDescription = "Reminder time"
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = reminderEnabled) { showTimePicker = true }
+        ) {
+            TextField(
+                // TODO: Assessment 4
+                value = reminderTime,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Reminder time") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Schedule,
+                        contentDescription = "Reminder time"
+                    )
+                },
+                supportingText = if (reminderEnabled) {
+                    { Text("Tap to change time") }
+                } else null,
+                colors = TextFieldDefaults.colors(
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                    disabledSupportingTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
-        )
+            )
+        }
+        if (reminderEnabled) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Set a consistent time to build the check-in habit.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Spacer(Modifier.height(24.dp))
 
         Text(
@@ -151,7 +204,7 @@ fun ProfileScreen(onLogout: () -> Unit = {}) {
             // TODO: Assessment 4
             Switch(
                 checked = darkMode,
-                onCheckedChange = { darkMode = it }
+                onCheckedChange = onDarkModeChange
             )
         }
         Spacer(Modifier.height(32.dp))
@@ -163,12 +216,38 @@ fun ProfileScreen(onLogout: () -> Unit = {}) {
             Text("Logout")
         }
     }
+
+    if (showTimePicker) {
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            title = { Text("Choose reminder time") },
+            text = { TimePicker(state = timePickerState) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        reminderTime = String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)
+                        showTimePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showTimePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
     ZenTheme {
-        ProfileScreen()
+        ProfileScreen(
+            darkMode = false,
+            onDarkModeChange = {}
+        )
     }
 }

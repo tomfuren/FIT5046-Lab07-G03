@@ -1,34 +1,53 @@
 package com.example.zen.screens
 
+import android.annotation.SuppressLint
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.Date
+import java.util.Locale
 
 private data class MoodEntry(
     val date: String,
@@ -37,8 +56,21 @@ private data class MoodEntry(
     val journalExcerpt: String
 )
 
+@SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * History screen (Assessment 2 prototype).
+ *
+ * What it demonstrates for the assignment:
+ * - LazyColumn list of recorded items
+ * - Search filtering (real-time)
+ * - Date range filtering using two DatePickers (From/To)
+ * - Tap-to-view details (dialog)
+ * - Long-press actions (Edit/Delete bottom sheet)
+ *
+ * In Assessment 4, the list will come from Room/Firebase instead of hardcoded sample data.
+ */
 fun HistoryScreen(onBack: () -> Unit = {}) {
     // TODO: Assessment 4
     val entries = listOf(
@@ -60,6 +92,45 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
     )
 
     var searchQuery by remember { mutableStateOf("") }
+    // Bottom sheet (long-press) actions target.
+    var selectedEntry by remember { mutableStateOf<MoodEntry?>(null) }
+    // Dialog (tap) details target.
+    var viewingEntry by remember { mutableStateOf<MoodEntry?>(null) }
+
+    val formatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+    val startPickerState = rememberDatePickerState(initialSelectedDateMillis = Instant.now().toEpochMilli())
+    val endPickerState = rememberDatePickerState(initialSelectedDateMillis = Instant.now().toEpochMilli())
+    var showStartPicker by remember { mutableStateOf(false) }
+    var showEndPicker by remember { mutableStateOf(false) }
+    var startDate by remember {
+        mutableStateOf(formatter.format(Date(startPickerState.selectedDateMillis ?: Instant.now().toEpochMilli())))
+    }
+    var endDate by remember {
+        mutableStateOf(formatter.format(Date(endPickerState.selectedDateMillis ?: Instant.now().toEpochMilli())))
+    }
+
+    val query = searchQuery.trim()
+    val filteredEntries = remember(query, entries) {
+        if (query.isEmpty()) {
+            entries
+        } else {
+            val q = query.lowercase()
+            entries.filter { entry ->
+                entry.date.lowercase().contains(q) ||
+                    entry.emotion.lowercase().contains(q) ||
+                    entry.stress.lowercase().contains(q) ||
+                    entry.journalExcerpt.lowercase().contains(q)
+            }
+        }
+    }
+
+    val dateFilteredEntries = remember(filteredEntries, startDate, endDate) {
+        val start = startDate
+        val end = endDate
+        filteredEntries.filter { entry ->
+            entry.date >= start && entry.date <= end
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -74,9 +145,9 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -100,17 +171,62 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
                     )
                 }
             )
+            Spacer(Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = startDate,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("From") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .combinedClickable(onClick = { showStartPicker = true }, onLongClick = {}),
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Start date"
+                        )
+                    },
+                    singleLine = true
+                )
+                Spacer(Modifier.width(12.dp))
+                OutlinedTextField(
+                    value = endDate,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("To") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .combinedClickable(onClick = { showEndPicker = true }, onLongClick = {}),
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "End date"
+                        )
+                    },
+                    singleLine = true
+                )
+            }
             Spacer(Modifier.height(16.dp))
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(entries.size) { index ->
-                    val entry = entries[index]
+                items(dateFilteredEntries) { entry ->
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                            .combinedClickable(
+                                onClick = {
+                                    // Report: "tap to view" behavior.
+                                    viewingEntry = entry
+                                },
+                                onLongClick = { selectedEntry = entry }
+                            )
+                            .padding(vertical = 10.dp)
                     ) {
                         Text(
                             text = "${entry.date} · ${entry.emotion} · ${entry.stress}",
@@ -120,12 +236,125 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
                         Text(
                             text = entry.journalExcerpt,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     HorizontalDivider()
                 }
             }
+        }
+    }
+
+    if (showStartPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showStartPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showStartPicker = false
+                    startPickerState.selectedDateMillis?.let { startDate = formatter.format(Date(it)) }
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartPicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = startPickerState)
+        }
+    }
+
+    if (showEndPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showEndPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showEndPicker = false
+                    endPickerState.selectedDateMillis?.let { endDate = formatter.format(Date(it)) }
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndPicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = endPickerState)
+        }
+    }
+
+    if (viewingEntry != null) {
+        AlertDialog(
+            onDismissRequest = { viewingEntry = null },
+            title = { Text("Mood entry") },
+            text = {
+                Column {
+                    Text(
+                        text = "${viewingEntry?.date} · ${viewingEntry?.emotion} · ${viewingEntry?.stress}",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = viewingEntry?.journalExcerpt.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewingEntry = null }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
+    if (selectedEntry != null) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedEntry = null }
+        ) {
+            Text(
+                text = "Entry actions",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = "${selectedEntry?.date} · ${selectedEntry?.emotion} · ${selectedEntry?.stress}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(Modifier.height(16.dp))
+
+            TextButton(
+                onClick = {
+                    // TODO: Assessment 4 (edit flow)
+                    selectedEntry = null
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
+                Spacer(Modifier.width(8.dp))
+                Text("Edit", modifier = Modifier.padding(start = 8.dp))
+            }
+
+            TextButton(
+                onClick = {
+                    // TODO: Assessment 4 (delete flow)
+                    selectedEntry = null
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete")
+                Spacer(Modifier.width(8.dp))
+                Text("Delete", modifier = Modifier.padding(start = 8.dp))
+            }
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }

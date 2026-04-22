@@ -2,27 +2,22 @@ package com.example.zen.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Zen brand palette
-val ZenSageGreen = Color(0xFF7FA99B)
-val ZenPastelBlue = Color(0xFFA7C7E7)
-val ZenWarmSand = Color(0xFFE8DCC4)
+// White & Gold palette (premium light theme)
+val ZenIvory = Color(0xFFF7F4EE)     // background
+val ZenPorcelain = Color(0xFFFFFDF8) // surface
+val ZenPearl = Color(0xFFF1EEE6)     // surfaceVariant
 
-// Light theme surfaces
-val ZenOffWhite = Color(0xFFFAF9F6)
-val ZenPureWhite = Color(0xFFFFFFFF)
+val ZenInk = Color(0xFF141417)       // primary text
+val ZenMutedText = Color(0xFF5D5A52) // secondary text
 
-// Dark theme surfaces
-val ZenDeepNavy = Color(0xFF1A2332)
-val ZenSlateGray = Color(0xFF2A3442)
+val ZenGold = Color(0xFFD1AC63)      // primary accent
+val ZenGoldBright = Color(0xFFE6CC88)
+val ZenGoldMuted = Color(0xFFB58C3D)
 
-// Container (softer tints of the brand colors)
-val ZenSageGreenContainer = Color(0xFFD4E4DE)
-val ZenPastelBlueContainer = Color(0xFFDCE9F4)
-val ZenWarmSandContainer = Color(0xFFF4EDE0)
+val ZenError = Color(0xFFB3261E)
 
-// On-colors
-val ZenOnPrimary = Color.White
-val ZenOnSecondary = Color(0xFF1A2332)
-val ZenOnTertiary = Color(0xFF1A2332)
-val ZenOnSurface = Color(0xFF1A2332)
-val ZenOnSurfaceDark = Color(0xFFFAF9F6)
+// Black & Gold palette (dark mode)
+val ZenBlack = Color(0xFF0B0B0E)
+val ZenCharcoal = Color(0xFF141419)
+val ZenOnyx = Color(0xFF1C1C22)
+val ZenMutedTextDark = Color(0xFFB8B8C0)

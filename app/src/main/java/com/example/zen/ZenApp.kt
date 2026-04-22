@@ -12,7 +12,20 @@ import com.example.zen.screens.SplashScreen
 import com.example.zen.screens.TipsLibraryScreen
 
 @Composable
-fun ZenApp() {
+/**
+ * Top-level navigation graph (app-level routes).
+ *
+ * We intentionally keep this graph small:
+ * - Auth flow: Splash → Login/Register
+ * - Main flow: a scaffold that hosts bottom-tab navigation
+ * - Two secondary pages: History and Tips Library
+ *
+ * In Assessment 4, data/auth will be connected, but the navigation structure can stay.
+ */
+fun ZenApp(
+    darkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit
+) {
     val navController = rememberNavController()
 
     NavHost(
@@ -27,6 +40,7 @@ fun ZenApp() {
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLogin = {
+                    // After login we don't want users to return to Splash via back.
                     navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
@@ -37,6 +51,7 @@ fun ZenApp() {
         composable(Routes.REGISTER) {
             RegisterScreen(
                 onRegister = {
+                    // After register we don't want users to return to Splash via back.
                     navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
@@ -49,10 +64,13 @@ fun ZenApp() {
                 onBrowseTips = { navController.navigate(Routes.TIPS_LIBRARY) },
                 onViewHistory = { navController.navigate(Routes.HISTORY) },
                 onLogout = {
+                    // Logout returns to Login and clears the main flow.
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.MAIN) { inclusive = true }
                     }
-                }
+                },
+                darkMode = darkMode,
+                onDarkModeChange = onDarkModeChange
             )
         }
         composable(Routes.HISTORY) {

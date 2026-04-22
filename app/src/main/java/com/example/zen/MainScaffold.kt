@@ -28,10 +28,22 @@ import com.example.zen.ui.theme.ZenTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Main shell shown after login.
+ *
+ * Responsibilities:
+ * - Top app bar title (based on selected bottom tab)
+ * - Bottom navigation (Home/Log/Insights/Profile)
+ * - Nested NavHost that swaps the tab content
+ *
+ * This keeps the app-level NavHost (`ZenApp`) simpler.
+ */
 fun MainScaffold(
     onBrowseTips: () -> Unit,
     onViewHistory: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    darkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -52,17 +64,24 @@ fun MainScaffold(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    // Use surface colors so the "gold" accent stays subtle.
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ) {
                 Destination.entries.forEach { destination ->
                     NavigationBarItem(
                         selected = currentDestination?.route == destination.route,
                         onClick = {
+                            // Standard bottom-tab behavior:
+                            // - keep one instance of each tab
+                            // - restore previous state when returning
                             navController.navigate(destination.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -109,7 +128,11 @@ fun MainScaffold(
                 InsightsScreen(onViewHistory = onViewHistory)
             }
             composable(Destination.PROFILE.route) {
-                ProfileScreen(onLogout = onLogout)
+                ProfileScreen(
+                    onLogout = onLogout,
+                    darkMode = darkMode,
+                    onDarkModeChange = onDarkModeChange
+                )
             }
         }
     }
@@ -123,7 +146,9 @@ fun MainScaffoldPreview() {
         MainScaffold(
             onBrowseTips = {},
             onViewHistory = {},
-            onLogout = {}
+            onLogout = {},
+            darkMode = false,
+            onDarkModeChange = {}
         )
     }
 }

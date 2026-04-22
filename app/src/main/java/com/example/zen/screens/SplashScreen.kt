@@ -18,6 +18,13 @@ import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 
 @Composable
+/**
+ * Splash / Onboarding entry (Assessment 2 prototype).
+ *
+ * Kept intentionally simple for screenshots:
+ * - App name + tagline
+ * - A single "Get Started" button to enter the auth flow
+ */
 fun SplashScreen(onGetStarted: () -> Unit = {}) {
     Column(
         modifier = Modifier
@@ -30,6 +37,12 @@ fun SplashScreen(onGetStarted: () -> Unit = {}) {
             text = "Zen",
             style = MaterialTheme.typography.displayLarge,
             color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "Breathe. Reflect. Reset.",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(32.dp))
         Button(

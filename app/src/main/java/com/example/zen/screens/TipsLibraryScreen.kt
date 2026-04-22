@@ -1,5 +1,6 @@
 package com.example.zen.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,16 +10,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
@@ -42,6 +49,16 @@ private data class Tip(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Tips Library screen (Assessment 2 prototype).
+ *
+ * Demonstrates:
+ * - Category filter chips (horizontal scroll)
+ * - LazyColumn list
+ * - Expandable cards (tap to expand, showing extra guidance)
+ *
+ * In Assessment 4, tips can be driven by context (weather/steps/stress) and persisted.
+ */
 fun TipsLibraryScreen(onBack: () -> Unit = {}) {
     // TODO: Assessment 4
     val tips = listOf(
@@ -62,6 +79,8 @@ fun TipsLibraryScreen(onBack: () -> Unit = {}) {
     val categories = listOf("All", "Breathing", "Movement", "Journaling", "Mindfulness")
 
     var selectedCategory by remember { mutableStateOf("All") }
+    // Only one card expands at a time for a clean reading experience.
+    var expandedTitle by remember { mutableStateOf<String?>(null) }
 
     val filteredTips = if (selectedCategory == "All") {
         tips
@@ -82,9 +101,9 @@ fun TipsLibraryScreen(onBack: () -> Unit = {}) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -120,27 +139,79 @@ fun TipsLibraryScreen(onBack: () -> Unit = {}) {
             ) {
                 items(filteredTips.size) { index ->
                     val tip = filteredTips[index]
-                    Column(
+                    val expanded = expandedTitle == tip.title
+                    OutlinedCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
+                            .clickable {
+                                expandedTitle = if (expanded) null else tip.title
+                            },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.outlinedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
                     ) {
-                        Text(
-                            text = tip.title,
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Text(
-                            text = tip.category,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = tip.description,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = tip.title,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Text(
+                                        text = tip.category,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        expandedTitle = if (expanded) null else tip.title
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = "Expand tip"
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = tip.description,
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = if (expanded) Int.MAX_VALUE else 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (expanded) {
+                                Spacer(Modifier.height(10.dp))
+                                Text(
+                                    text = "How to",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = "Set a 1-minute timer. Focus on slow, steady breaths. If your mind wanders, gently return attention to the count.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                Text(
+                                    text = "Why it helps",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = "Controlled breathing can reduce physiological arousal and support emotional regulation during stress.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
-                    HorizontalDivider()
                 }
             }
         }
