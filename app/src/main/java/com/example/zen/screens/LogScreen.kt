@@ -39,7 +39,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.util.Date
 import java.util.Locale
 
@@ -70,14 +69,14 @@ fun LogScreen() {
     var journal by remember { mutableStateOf("") }
 
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = Instant.now().toEpochMilli()
+        initialSelectedDateMillis = System.currentTimeMillis()
     )
     var showDatePicker by remember { mutableStateOf(false) }
     val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     var selectedDate by remember {
         mutableStateOf(
             formatter.format(
-                Date(datePickerState.selectedDateMillis ?: Instant.now().toEpochMilli())
+                Date(datePickerState.selectedDateMillis ?: System.currentTimeMillis())
             )
         )
     }

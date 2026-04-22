@@ -2,6 +2,8 @@ package com.example.zen.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -31,6 +33,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
@@ -45,7 +48,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.util.Date
 import java.util.Locale
 
@@ -98,15 +100,16 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
     var viewingEntry by remember { mutableStateOf<MoodEntry?>(null) }
 
     val formatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
-    val startPickerState = rememberDatePickerState(initialSelectedDateMillis = Instant.now().toEpochMilli())
-    val endPickerState = rememberDatePickerState(initialSelectedDateMillis = Instant.now().toEpochMilli())
+    val nowMillis = remember { System.currentTimeMillis() }
+    val startPickerState = rememberDatePickerState(initialSelectedDateMillis = nowMillis)
+    val endPickerState = rememberDatePickerState(initialSelectedDateMillis = nowMillis)
     var showStartPicker by remember { mutableStateOf(false) }
     var showEndPicker by remember { mutableStateOf(false) }
     var startDate by remember {
-        mutableStateOf(formatter.format(Date(startPickerState.selectedDateMillis ?: Instant.now().toEpochMilli())))
+        mutableStateOf(formatter.format(Date(startPickerState.selectedDateMillis ?: nowMillis)))
     }
     var endDate by remember {
-        mutableStateOf(formatter.format(Date(endPickerState.selectedDateMillis ?: Instant.now().toEpochMilli())))
+        mutableStateOf(formatter.format(Date(endPickerState.selectedDateMillis ?: nowMillis)))
     }
 
     val query = searchQuery.trim()
@@ -139,7 +142,7 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -176,39 +179,63 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedTextField(
-                    value = startDate,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("From") },
+                Box(
                     modifier = Modifier
                         .weight(1f)
-                        .combinedClickable(onClick = { showStartPicker = true }, onLongClick = {}),
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = "Start date"
+                        .clickable { showStartPicker = true }
+                ) {
+                    OutlinedTextField(
+                        value = startDate,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("From") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false,
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = "Start date"
+                            )
+                        },
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    },
-                    singleLine = true
-                )
+                    )
+                }
                 Spacer(Modifier.width(12.dp))
-                OutlinedTextField(
-                    value = endDate,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("To") },
+                Box(
                     modifier = Modifier
                         .weight(1f)
-                        .combinedClickable(onClick = { showEndPicker = true }, onLongClick = {}),
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = "End date"
+                        .clickable { showEndPicker = true }
+                ) {
+                    OutlinedTextField(
+                        value = endDate,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("To") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false,
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = "End date"
+                            )
+                        },
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    },
-                    singleLine = true
-                )
+                    )
+                }
             }
             Spacer(Modifier.height(16.dp))
 
