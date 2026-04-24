@@ -39,7 +39,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 
-@Composable
 /**
  * Insights screen (Assessment 2 prototype).
  *
@@ -52,6 +51,7 @@ import androidx.compose.ui.graphics.StrokeCap
  * Charts are intentionally simple and use stub values for the prototype.
  * In Assessment 4, these values will be derived from stored mood entries.
  */
+@Composable
 fun InsightsScreen(onViewHistory: () -> Unit = {}) {
     // TODO: Assessment 4
     var selectedRange by remember { mutableStateOf("Week") }
@@ -114,7 +114,9 @@ fun InsightsScreen(onViewHistory: () -> Unit = {}) {
         )
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Simple line chart (skeleton-friendly) to match report
+        // Using Compose's foundation Canvas API to draw the 7-day mood trend
+        // line chart. Offset math is derived from the data range so the polyline
+        // always fits the available width/height regardless of value magnitude.
         Column {
             val chartBg = MaterialTheme.colorScheme.surfaceVariant
             val lineColor = MaterialTheme.colorScheme.primary
@@ -128,10 +130,19 @@ fun InsightsScreen(onViewHistory: () -> Unit = {}) {
             ) {
                 val values = moodValues.map { it.toFloat() }
                 if (values.size >= 2) {
+                    // Normalise the data so the line fills the canvas vertically:
+                    // min maps to the bottom edge, max to the top. The
+                    // `takeIf { it > 0f } ?: 1f` guard protects against a flat
+                    // series (all identical values) to avoid divide-by-zero.
                     val maxV = values.maxOrNull() ?: 1f
                     val minV = values.minOrNull() ?: 0f
                     val range = (maxV - minV).takeIf { it > 0f } ?: 1f
 
+                    // stepX spaces the samples evenly across the canvas width:
+                    // N points need N-1 gaps. The y coordinate is inverted
+                    // (size.height - ...) because Compose Canvas's origin is
+                    // top-left with y growing downward, while a "higher" mood
+                    // value should visually render higher up the chart.
                     val stepX = size.width / (values.size - 1)
                     val points = values.mapIndexed { i, v ->
                         val x = stepX * i
@@ -139,7 +150,11 @@ fun InsightsScreen(onViewHistory: () -> Unit = {}) {
                         Offset(x, y)
                     }
 
-                    // Polyline
+                    // Two-pass draw: line segments first, then a circle at each
+                    // sample. This ordering keeps the dots on top so they stay
+                    // visible where the line crosses them. Separating the loops
+                    // also lets the stroke style (round cap) differ from the
+                    // circle style (filled disc).
                     for (i in 0 until points.size - 1) {
                         drawLine(
                             color = lineColor,
@@ -149,7 +164,6 @@ fun InsightsScreen(onViewHistory: () -> Unit = {}) {
                             cap = StrokeCap.Round
                         )
                     }
-                    // Dots
                     points.forEach { p ->
                         drawCircle(
                             color = lineColor,
@@ -186,6 +200,10 @@ fun InsightsScreen(onViewHistory: () -> Unit = {}) {
         ) {
             stressValues.forEachIndexed { index, value ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Stub mapping: multiplying the 1-5 stress value by 22dp
+                    // keeps the tallest bar near the 160dp chart height. In
+                    // Assessment 4 this will be replaced with a proportional
+                    // mapping against the real max stress value from Room.
                     Box(
                         modifier = Modifier
                             .width(20.dp)

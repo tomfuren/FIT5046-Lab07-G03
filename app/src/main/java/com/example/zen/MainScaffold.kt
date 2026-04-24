@@ -26,8 +26,6 @@ import com.example.zen.screens.LogScreen
 import com.example.zen.screens.ProfileScreen
 import com.example.zen.ui.theme.ZenTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 /**
  * Main shell shown after login.
  *
@@ -38,6 +36,8 @@ import com.example.zen.ui.theme.ZenTheme
  *
  * This keeps the app-level NavHost (`ZenApp`) simpler.
  */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun MainScaffold(
     onBrowseTips: () -> Unit,
     onViewHistory: () -> Unit,
@@ -49,6 +49,8 @@ fun MainScaffold(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
+    // Derive the top bar title from the currently selected bottom tab. Falls
+    // back to the app name during transitional frames when no route matches.
     val currentTab = Destination.entries.firstOrNull {
         it.route == currentDestination?.route
     }
@@ -79,9 +81,10 @@ fun MainScaffold(
                     NavigationBarItem(
                         selected = currentDestination?.route == destination.route,
                         onClick = {
-                            // Standard bottom-tab behavior:
-                            // - keep one instance of each tab
-                            // - restore previous state when returning
+                            // Week 5 navigation pattern: popUpTo + launchSingleTop
+                            // + restoreState keeps only one instance of each tab
+                            // on the back stack and restores its previous state
+                            // when the user returns to it.
                             navController.navigate(destination.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -102,6 +105,8 @@ fun MainScaffold(
             }
         }
     ) { paddingValues ->
+        // Nested NavHost for tab switching only. Cross-flow navigation
+        // (auth, History, Tips Library) lives in the app-level NavHost in ZenApp.
         NavHost(
             navController = navController,
             startDestination = Destination.HOME.route,
@@ -111,6 +116,9 @@ fun MainScaffold(
                 HomeScreen(
                     onBrowseTips = onBrowseTips,
                     onLogMood = {
+                        // Route Home's "Log your mood" button through the same
+                        // Week 5 pattern so the Log tab stays in sync with the
+                        // bottom bar selection.
                         navController.navigate(Destination.LOG.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true

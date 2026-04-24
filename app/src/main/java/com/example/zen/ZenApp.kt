@@ -11,7 +11,6 @@ import com.example.zen.screens.RegisterScreen
 import com.example.zen.screens.SplashScreen
 import com.example.zen.screens.TipsLibraryScreen
 
-@Composable
 /**
  * Top-level navigation graph (app-level routes).
  *
@@ -22,6 +21,7 @@ import com.example.zen.screens.TipsLibraryScreen
  *
  * In Assessment 4, data/auth will be connected, but the navigation structure can stay.
  */
+@Composable
 fun ZenApp(
     darkMode: Boolean,
     onDarkModeChange: (Boolean) -> Unit
@@ -40,7 +40,10 @@ fun ZenApp(
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLogin = {
-                    // After login we don't want users to return to Splash via back.
+                    // Week 5 navigation pattern: popUpTo(SPLASH) with
+                    // inclusive = true clears the entire auth flow from the
+                    // back stack, so pressing Back from the main app will not
+                    // return the user to Splash or Login.
                     navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }

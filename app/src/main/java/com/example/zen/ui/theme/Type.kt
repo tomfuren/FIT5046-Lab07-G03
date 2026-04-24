@@ -6,7 +6,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles to start with
+// Typography for the Zen wellness app.
+//
+// FontFamily.Serif was chosen over the default sans-serif to give the app
+// a calmer, more editorial feel — pairing with the gold accent (see Color.kt)
+// to reinforce Zen's wellness and premium positioning. Applied to display,
+// headline, and title styles; body and label styles stay on FontFamily.Default
+// for readability at smaller sizes.
 val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = FontFamily.Serif,

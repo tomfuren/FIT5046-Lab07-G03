@@ -38,8 +38,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 /**
  * Profile / Settings screen (Assessment 2 prototype).
  *
@@ -50,6 +48,8 @@ import com.example.zen.ui.theme.ZenTheme
  *
  * In Assessment 4, these settings will be persisted (Room/Firebase) and used for notifications.
  */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun ProfileScreen(
     onLogout: () -> Unit = {},
     darkMode: Boolean,

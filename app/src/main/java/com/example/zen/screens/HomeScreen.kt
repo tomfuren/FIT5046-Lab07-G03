@@ -28,7 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 
-@Composable
 /**
  * Home / Dashboard screen (Assessment 2 prototype).
  *
@@ -38,6 +37,7 @@ import com.example.zen.ui.theme.ZenTheme
  * - Habit progress (LinearProgressIndicator)
  * - Entry point buttons to Mood Log and Tips Library
  */
+@Composable
 fun HomeScreen(onBrowseTips: () -> Unit = {}, onLogMood: () -> Unit = {}) {
     var drinkWater by remember { mutableStateOf(false) }
     var walk by remember { mutableStateOf(false) }

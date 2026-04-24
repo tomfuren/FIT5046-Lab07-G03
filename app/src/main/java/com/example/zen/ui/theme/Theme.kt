@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
 
+// Light theme: ivory surfaces with a warm gold accent.
 private val LightColorScheme = lightColorScheme(
     primary = ZenGold,
     onPrimary = ZenInk,
@@ -34,6 +35,7 @@ private val LightColorScheme = lightColorScheme(
     onError = Color.White,
 )
 
+// Dark theme: black/onyx surfaces keeping the same gold accent for brand consistency.
 private val DarkColorScheme = darkColorScheme(
     primary = ZenGold,
     onPrimary = ZenBlack,
@@ -61,17 +63,17 @@ private val DarkColorScheme = darkColorScheme(
     onError = ZenBlack,
 )
 
+/**
+ * App theme wrapper.
+ *
+ * We intentionally do NOT use dynamic colors here so screenshots look consistent across devices.
+ * We do support light/dark mode (as described in the report), controlled by the Profile switch.
+ */
 @Composable
 fun ZenTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    /**
-     * App theme wrapper.
-     *
-     * We intentionally do NOT use dynamic colors here so screenshots look consistent across devices.
-     * We do support light/dark mode (as described in the report), controlled by the Profile switch.
-     */
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(

@@ -42,8 +42,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 /**
  * Mood Log form screen (Assessment 2 prototype).
  *
@@ -54,6 +52,8 @@ import java.util.Locale
  *
  * Data persistence (Room/Firebase) will be implemented in Assessment 4.
  */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun LogScreen() {
     val emotions = listOf("Happy", "Calm", "Anxious", "Stressed", "Sad", "Angry")
     val stressLevels = listOf("Very Low", "Low", "Moderate", "High", "Very High")
@@ -68,6 +68,9 @@ fun LogScreen() {
 
     var journal by remember { mutableStateOf("") }
 
+    // Week 3 DatePicker pattern: rememberDatePickerState + DatePickerDialog
+    // + a read-only TextField with a trailing calendar icon. The displayed
+    // date is only committed when the user taps OK (see DatePickerDialog below).
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = System.currentTimeMillis()
     )
@@ -89,6 +92,9 @@ fun LogScreen() {
     ) {
         Text("How are you feeling?", style = MaterialTheme.typography.titleMedium)
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        // Week 4 ExposedDropdownMenuBox pattern: menuAnchor() on a read-only
+        // TextField with ExposedDropdownMenuDefaults.TrailingIcon, driven by
+        // a single `expanded` state flipped through onExpandedChange.
         ExposedDropdownMenuBox(
             expanded = isEmotionExpanded,
             onExpandedChange = { isEmotionExpanded = it }

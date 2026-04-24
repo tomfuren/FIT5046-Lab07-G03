@@ -31,6 +31,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 
+/**
+ * Login screen for the Zen app (Assessment 2 prototype).
+ *
+ * Entry point of the auth flow. Collects email and password (with a
+ * show/hide toggle) and offers a Google sign-in button (stubbed for now).
+ * [onLogin] drives navigation into the main flow; [onSignUp] routes to
+ * the Register screen.
+ *
+ * In Assessment 4, [onLogin] and the Google button will be wired to
+ * Firebase Auth.
+ */
 @Composable
 fun LoginScreen(onLogin: () -> Unit = {}, onSignUp: () -> Unit = {}) {
     var email by remember { mutableStateOf("") }
@@ -58,6 +69,9 @@ fun LoginScreen(onLogin: () -> Unit = {}, onSignUp: () -> Unit = {}) {
         )
         Spacer(Modifier.height(8.dp))
 
+        // Password visibility toggle: swaps VisualTransformation between
+        // PasswordVisualTransformation (mask) and VisualTransformation.None
+        // (plaintext) — same TextField, different rendering.
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },

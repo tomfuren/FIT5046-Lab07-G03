@@ -2,6 +2,12 @@ package com.example.zen.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// Brand palette for the Zen wellness app.
+//
+// The gold accent was chosen for its warmth and calm, premium feel — a fit
+// for Zen's mental-health positioning. The same gold is shared across light
+// and dark themes so brand identity stays consistent regardless of system mode.
+
 // White & Gold palette (premium light theme)
 val ZenIvory = Color(0xFFF7F4EE)     // background
 val ZenPorcelain = Color(0xFFFFFDF8) // surface

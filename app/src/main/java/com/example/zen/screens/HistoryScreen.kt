@@ -51,6 +51,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * One recorded mood entry shown in the list. Dates are stored as ISO
+ * yyyy-MM-dd strings so they can be compared lexically against the
+ * From/To filter without parsing. Will be replaced by a Room entity
+ * in Assessment 4.
+ */
 private data class MoodEntry(
     val date: String,
     val emotion: String,
@@ -58,9 +64,6 @@ private data class MoodEntry(
     val journalExcerpt: String
 )
 
-@SuppressLint("DefaultLocale")
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 /**
  * History screen (Assessment 2 prototype).
  *
@@ -73,6 +76,9 @@ private data class MoodEntry(
  *
  * In Assessment 4, the list will come from Room/Firebase instead of hardcoded sample data.
  */
+@SuppressLint("DefaultLocale")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun HistoryScreen(onBack: () -> Unit = {}) {
     // TODO: Assessment 4
     val entries = listOf(
@@ -94,11 +100,17 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
     )
 
     var searchQuery by remember { mutableStateOf("") }
-    // Bottom sheet (long-press) actions target.
+    // Two nullable targets — one per surface — so tap and long-press can
+    // open independently without racing. The AlertDialog (viewingEntry)
+    // shows read-only details; the ModalBottomSheet (selectedEntry) exposes
+    // Edit/Delete actions. Separating the states keeps each surface's
+    // dismiss handler scoped to its own entry.
     var selectedEntry by remember { mutableStateOf<MoodEntry?>(null) }
-    // Dialog (tap) details target.
     var viewingEntry by remember { mutableStateOf<MoodEntry?>(null) }
 
+    // Week 3 DatePicker pattern: rememberDatePickerState + DatePickerDialog
+    // + a read-only TextField with a trailing calendar icon. Applied twice
+    // here (start + end) to give the user a From/To range filter.
     val formatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
     val nowMillis = remember { System.currentTimeMillis() }
     val startPickerState = rememberDatePickerState(initialSelectedDateMillis = nowMillis)
@@ -120,13 +132,17 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
             val q = query.lowercase()
             entries.filter { entry ->
                 entry.date.lowercase().contains(q) ||
-                    entry.emotion.lowercase().contains(q) ||
-                    entry.stress.lowercase().contains(q) ||
-                    entry.journalExcerpt.lowercase().contains(q)
+                        entry.emotion.lowercase().contains(q) ||
+                        entry.stress.lowercase().contains(q) ||
+                        entry.journalExcerpt.lowercase().contains(q)
             }
         }
     }
 
+    // Date-range filter relies on ISO yyyy-MM-dd strings: because the format
+    // is zero-padded and fixed-width, lexical (string) comparison produces
+    // the same ordering as chronological comparison. This avoids having to
+    // parse each entry back to a Date on every recomposition.
     val dateFilteredEntries = remember(filteredEntries, startDate, endDate) {
         val start = startDate
         val end = endDate
@@ -242,15 +258,17 @@ fun HistoryScreen(onBack: () -> Unit = {}) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(dateFilteredEntries) { entry ->
+                items(dateFilteredEntries.size) { index ->
+                    val entry = dateFilteredEntries[index]
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            // combinedClickable wires up two gestures on the
+                            // same row: a short tap opens the read-only detail
+                            // dialog (viewingEntry); a long press opens the
+                            // Edit/Delete bottom sheet (selectedEntry).
                             .combinedClickable(
-                                onClick = {
-                                    // Report: "tap to view" behavior.
-                                    viewingEntry = entry
-                                },
+                                onClick = { viewingEntry = entry },
                                 onLongClick = { selectedEntry = entry }
                             )
                             .padding(vertical = 10.dp)

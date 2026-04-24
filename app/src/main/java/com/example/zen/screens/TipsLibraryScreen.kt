@@ -41,14 +41,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 
+/**
+ * One row in the Tips Library. Kept inside this file because it is only
+ * used as sample UI data — will be replaced by a Room entity in Assessment 4.
+ */
 private data class Tip(
     val title: String,
     val category: String,
     val description: String
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 /**
  * Tips Library screen (Assessment 2 prototype).
  *
@@ -59,6 +61,8 @@ private data class Tip(
  *
  * In Assessment 4, tips can be driven by context (weather/steps/stress) and persisted.
  */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun TipsLibraryScreen(onBack: () -> Unit = {}) {
     // TODO: Assessment 4
     val tips = listOf(
@@ -120,6 +124,10 @@ fun TipsLibraryScreen(onBack: () -> Unit = {}) {
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Using Button/OutlinedButton as a simple chip-style selector:
+                // filled Button marks the selected category, OutlinedButton marks
+                // the rest. Keeps the implementation aligned with widgets taught
+                // in the course (Weeks 1-6).
                 categories.forEach { category ->
                     if (selectedCategory == category) {
                         Button(onClick = { selectedCategory = category }) {
@@ -137,6 +145,9 @@ fun TipsLibraryScreen(onBack: () -> Unit = {}) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
+                // Week 3-4 LazyColumn pattern: items(size) { index -> } reads
+                // each element by index. The list-argument overload items(list)
+                // is outside the course scope so is avoided intentionally.
                 items(filteredTips.size) { index ->
                     val tip = filteredTips[index]
                     val expanded = expandedTitle == tip.title

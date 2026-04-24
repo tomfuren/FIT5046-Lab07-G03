@@ -34,8 +34,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.zen.ui.theme.ZenTheme
 
+/**
+ * Discrete password-strength buckets rendered by the live strength
+ * indicator on [RegisterScreen]. Computed via [evaluatePasswordStrength].
+ */
 private enum class PasswordStrength { NONE, WEAK, MODERATE, STRONG }
 
+/**
+ * Classifies a password by length and character diversity for the live
+ * strength indicator on [RegisterScreen].
+ *
+ * STRONG requires 8+ characters and at least 3 of {lowercase, uppercase,
+ * digit, symbol}. MODERATE requires any 2 of those categories. Inputs
+ * shorter than 6 characters or with lower diversity fall back to WEAK.
+ *
+ * UI-only heuristic — it is not a security check and does not replace
+ * real validation. Assessment 4 will delegate password validation to
+ * Firebase Auth's server-side policy; this function will remain only
+ * as a client-side hint for the strength bar.
+ */
 private fun evaluatePasswordStrength(password: String): PasswordStrength {
     if (password.isEmpty()) return PasswordStrength.NONE
     val hasLower = password.any { it.isLowerCase() }
@@ -52,6 +69,16 @@ private fun evaluatePasswordStrength(password: String): PasswordStrength {
     }
 }
 
+/**
+ * Registration screen for the Zen app (Assessment 2 prototype).
+ *
+ * Fields: name, email, password (with live strength indicator), confirm
+ * password. Validation runs on Submit only — per-field errors clear as
+ * the user edits. Successful submission invokes [onRegister]; [onBack]
+ * pops back to the Login screen.
+ *
+ * In Assessment 4, [onRegister] will hand the credentials off to Firebase Auth.
+ */
 @Composable
 fun RegisterScreen(onRegister: () -> Unit = {}, onBack: () -> Unit = {}) {
     var name by remember { mutableStateOf("") }
@@ -215,6 +242,10 @@ fun RegisterScreen(onRegister: () -> Unit = {}, onBack: () -> Unit = {}) {
 
         Button(
             onClick = {
+                // Submit-time validation: flip every error flag in one pass,
+                // then call onRegister only if all fields passed. Errors are
+                // cleared live in each field's onValueChange above, so the
+                // user sees their correction take effect without re-submitting.
                 nameError = name.isEmpty()
                 emailError = email.isEmpty()
                 passwordError = password.isEmpty()
